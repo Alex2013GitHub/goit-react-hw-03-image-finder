@@ -25,35 +25,31 @@ export class App extends Component {
   };
 
   componentDidUpdate = async (prevProps, prevState) => {
-    const prevQuery = prevState.query;
-    const searchQuery = this.state.query;
-    const prevPage = prevState.page;
-    const nexPage = this.state.page;
+    const { query, page } = this.state;
 
-    if (prevQuery !== searchQuery || prevPage !== nexPage) {
+    if (prevState.query !== query || prevState.page !== page) {
       this.loadResult();
     }
   };
 
   loadResult = async () => {
-    const searchQuery = this.state.query;
-    const nexPage = this.state.page;
-
+    const { query, page } = this.state;
     try {
       this.setState({ loading: true });
-      const img = await getImages(searchQuery, nexPage);
-      if (img.length) {
-        this.setState(prevState => ({
-          images: this.state.page > 1 ? [...prevState.images, ...img] : img,
-        }));
-        success(searchQuery);
-        this.setState({ loading: false });
-      } else {
+      const img = await getImages(query, page);
+      if (!img.length) {
         errorInfo();
-        this.setState({ loading: false });
+        return;
+      }
+      this.setState(prevState => ({
+        images: [...prevState.images, ...img],
+      }));
+      if (page === 1) {
+        success(query);
       }
     } catch (error) {
       console.log(error);
+    } finally {
       this.setState({ loading: false });
     }
   };
